@@ -6,7 +6,7 @@ function App() {
   const API_KEY = import.meta.env.VITE_LASTFM_KEY
   const [response, setResponse] = useState([])
   const [search, setSearch] = useState("")
-  const [filteredListeners, setFilteredListeners] = useState(0)
+  const [listenerSearch, setListenerSearch] = useState("")
 
 
   useEffect(()=>{
@@ -21,10 +21,10 @@ function App() {
   console.log(response)
 
   const filtered_list = response.filter(artist => artist.name.toLowerCase().includes(search.toLowerCase()))
-
-  const totalPlays = filtered_list.reduce((sum, p) => sum + Number(p.playcount), 0)
-  const totalListeners = filtered_list.reduce((sum, p) => sum + Number(p.listeners), 0)
-  const count = filtered_list.length
+  const filtered_listeners = filtered_list.filter(artist => Number(artist.listeners) >= Number(listenerSearch))
+  const totalPlays = filtered_listeners.reduce((sum, p) => sum + Number(p.playcount), 0)
+  const totalListeners = filtered_listeners.reduce((sum, p) => sum + Number(p.listeners), 0)
+  const count = filtered_listeners.length
   const avgPlays = count ? Math.round(totalPlays / count) : 0
   const avgListeners = count ? Math.round(totalListeners / count) : 0
 
@@ -54,6 +54,13 @@ function App() {
         onChange={(e) => setSearch(e.target.value)}
         value={search}
       />
+      <input
+        className="listener-search"
+        type="text"
+        placeholder="Enter min # of listeners..."
+        onChange={(e) => setListenerSearch(e.target.value)}
+        value={listenerSearch}
+      />
 
       <div className="data-container">
         <table>
@@ -65,7 +72,7 @@ function App() {
             </tr>
           </thead>
           <tbody>
-            {filtered_list.map(r =>
+            {filtered_listeners.map(r =>
               <tr key={r.name}>
                 <td>{r.name}</td>
                 <td className="num">{Number(r.playcount).toLocaleString()}</td>
