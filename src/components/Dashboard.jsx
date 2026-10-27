@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import '../App.css'
 import { Link } from 'react-router-dom'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Pie, PieChart, Cell, Legend } from 'recharts'
+
+const PIE_COLORS = ['#aa3bff', '#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+const OTHER_COLOR = '#9ca3af'
 
 function Dashboard() {
   const URL = "https://ws.audioscrobbler.com/2.0/"
@@ -34,6 +37,12 @@ function Dashboard() {
   .sort((a, b) => Number(b.playcount) - Number(a.playcount))
   .slice(0, 10)
   .map(a => ({ name: a.name, plays: Number(a.playcount) }))
+  const topFive = topPlays.slice(0, 5)
+  const topFivePlays = topFive.reduce((sum, a) => sum + a.plays, 0)
+  const otherPlays = totalPlays - topFivePlays
+  const pieData = otherPlays > 0
+    ? [...topFive, { name: "Everyone else", plays: otherPlays }]
+    : topFive
 
   return (
     <div className="dashboard">
@@ -52,17 +61,76 @@ function Dashboard() {
           <span className="stat-label">Average Listeners</span>
           <span className="stat-value">{avgListeners.toLocaleString()}</span>
         </div>
-        <div className = "Chart-Render">
-            <ResponsiveContainer width = "100%" height = {300}>
-                <BarChart data = {topPlays}>
-                    <XAxis dataKey = "name"></XAxis>
-                    <YAxis></YAxis>
-                    <Tooltip></Tooltip>
-                    <Bar dataKey = "plays"></Bar>
-                </BarChart>
+      </div>
 
-            </ResponsiveContainer>
-        </div>
+      <div className="chart-card">
+        <h2>Top 10 artists by total plays</h2>
+        <ResponsiveContainer width="100%" height={380}>
+          <BarChart data={topPlays} layout="vertical" margin={{ top: 4, right: 24, bottom: 4, left: 8 }}>
+            <CartesianGrid horizontal={false} stroke="var(--border)" />
+            <XAxis
+              type="number"
+              tickFormatter={(v) => new Intl.NumberFormat('en', { notation: 'compact' }).format(v)}
+              stroke="var(--text)"
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={120}
+              interval={0}
+              stroke="var(--text)"
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              cursor={{ fill: 'var(--accent-bg)' }}
+              formatter={(v) => [v.toLocaleString(), 'Plays']}
+              contentStyle={{
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                color: 'var(--text-h)',
+              }}
+            />
+            <Bar dataKey="plays" fill="var(--accent)" radius={[0, 6, 6, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="chart-card">
+        <h2>How much of the charts do the top 5 artists own?</h2>
+        <ResponsiveContainer width="100%" height={360}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="plays"
+              nameKey="name"
+              innerRadius={70}
+              outerRadius={120}
+              paddingAngle={2}
+              stroke="var(--bg)"
+              label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+            >
+              {pieData.map((slice, i) => (
+                <Cell
+                  key={slice.name}
+                  fill={slice.name === "Everyone else" ? OTHER_COLOR : PIE_COLORS[i % PIE_COLORS.length]}
+                />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(v) => [v.toLocaleString(), 'Plays']}
+              contentStyle={{
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                color: 'var(--text-h)',
+              }}
+            />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
 
       <input
