@@ -15,7 +15,7 @@ function DetailView(){
         setResponse(data.artist.bio.summary)
     }
     fetchMusic()
-    },[])
+    },[name])
 
 
     return(
