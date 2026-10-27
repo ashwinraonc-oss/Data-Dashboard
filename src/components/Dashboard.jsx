@@ -11,6 +11,7 @@ function Dashboard() {
   const [listenerSearch, setListenerSearch] = useState("")
 
 
+
   useEffect(()=>{
     async function fetchMusic(){
       const res = fetch(`${URL}?method=chart.gettopartists&api_key=${API_KEY}&format=json`)
@@ -29,6 +30,10 @@ function Dashboard() {
   const count = filtered_listeners.length
   const avgPlays = count ? Math.round(totalPlays / count) : 0
   const avgListeners = count ? Math.round(totalListeners / count) : 0
+  const topPlays = [...filtered_listeners]
+  .sort((a, b) => Number(b.playcount) - Number(a.playcount))
+  .slice(0, 10)
+  .map(a => ({ name: a.name, plays: Number(a.playcount) }))
 
   return (
     <div className="dashboard">
@@ -46,6 +51,17 @@ function Dashboard() {
         <div className="stat-card">
           <span className="stat-label">Average Listeners</span>
           <span className="stat-value">{avgListeners.toLocaleString()}</span>
+        </div>
+        <div className = "Chart-Render">
+            <ResponsiveContainer width = "100%" height = {300}>
+                <BarChart data = {topPlays}>
+                    <XAxis dataKey = "name"></XAxis>
+                    <YAxis></YAxis>
+                    <Tooltip></Tooltip>
+                    <Bar dataKey = "plays"></Bar>
+                </BarChart>
+
+            </ResponsiveContainer>
         </div>
       </div>
 
